@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:bbfluttermodule/TestDart.dart';
 import 'package:bbfluttermodule/page/ensure_money/page/ensure_money.dart';
+import 'package:bbfluttermodule/page/threePage.dart';
 import 'package:bbfluttermodule/router/not_found_page.dart';
 import 'package:bbfluttermodule/router/routers.dart';
 import 'package:bbfluttermodule/util/log_utils.dart';
@@ -10,10 +11,8 @@ import 'package:oktoast/oktoast.dart';
 import 'package:provider/provider.dart';
 
 import 'common/common.dart';
-import 'file:///D:/bb_flutter_module/bb_flutter_module/lib/page/score/score_detail.dart';
 import 'package:bbfluttermodule/secondPage.dart';
 import 'package:dio/dio.dart';
-import 'file:///D:/bb_flutter_module/bb_flutter_module/lib/page/threePage.dart';
 import 'package:flutter/material.dart';
 
 import 'bean/rouPathBean.dart';
@@ -51,7 +50,7 @@ class MyApp extends StatelessWidget {
                 theme: theme ?? provider.getTheme(),
 //                darkTheme: provider.getTheme(isDarkMode: true),
 //                themeMode: provider.getThemeMode(),
-                home: TestDart(),
+                home: EnsureMoney(),
                 onGenerateRoute: Routes.router.generator,
                 builder: (context, child) {
                   /// 保证文字大小不受手机系统设置影响 https://www.kikt.top/posts/flutter/layout/dynamic-text/

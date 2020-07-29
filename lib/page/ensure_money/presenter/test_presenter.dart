@@ -4,7 +4,6 @@ import 'package:bbfluttermodule/net/dio_utils.dart';
 import 'package:bbfluttermodule/net/http_api.dart';
 import 'package:bbfluttermodule/page/ensure_money/iview/i_test_view.dart';
 import 'package:bbfluttermodule/page/ensure_money/models/ensure_moeny_model_entity.dart';
-import 'file:///D:/bb_flutter_module/bb_flutter_module/lib/page/ensure_money/iview/i_ensure_money.dart';
 import 'package:flutter/cupertino.dart';
 
 class TestPresenter extends BasePagePresenter<ITestView> {

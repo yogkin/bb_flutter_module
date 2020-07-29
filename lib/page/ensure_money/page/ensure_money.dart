@@ -1,8 +1,8 @@
 import 'package:bbfluttermodule/common/color_utils.dart';
 import 'package:bbfluttermodule/mvp/base_page.dart';
 import 'package:bbfluttermodule/mvp/base_page_presenter.dart';
+import 'package:bbfluttermodule/page/ensure_money/iview/i_ensure_money.dart';
 import 'package:bbfluttermodule/page/ensure_money/models/ensure_moeny_model_entity.dart';
-import 'file:///D:/bb_flutter_module/bb_flutter_module/lib/page/ensure_money/iview/i_ensure_money.dart';
 import 'package:bbfluttermodule/page/ensure_money/presenter/ensure_money_presenter.dart';
 import 'package:bbfluttermodule/res/dimens.dart';
 import 'package:bbfluttermodule/res/resources.dart';

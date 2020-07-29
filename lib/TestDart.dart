@@ -1,5 +1,6 @@
 import 'package:bbfluttermodule/mvp/mvps.dart';
 import 'package:bbfluttermodule/page/ensure_money/iview/i_ensure_money.dart';
+import 'package:bbfluttermodule/page/ensure_money/iview/i_test_view.dart';
 import 'package:bbfluttermodule/page/ensure_money/models/ensure_moeny_model_entity.dart';
 import 'package:bbfluttermodule/page/ensure_money/page/ensure_money.dart';
 import 'package:bbfluttermodule/page/ensure_money/presenter/ensure_money_presenter.dart';
@@ -14,21 +15,20 @@ import 'package:flutter/material.dart';
 import 'common/color_utils.dart';
 import 'mvp/base_page.dart';
 
-class TestDart extends StatefulWidget{
-
+class TestDart extends StatefulWidget {
   const TestDart({
     Key key,
   }) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() =>_TestDartState();
-
+  State<StatefulWidget> createState() => _TestDartState();
 }
 
 class _TestDartState extends State<TestDart>
-    with BasePageMixin<TestDart, TestPresenter>,
-        AutomaticKeepAliveClientMixin<TestDart> implements IEnsureView {
-
+    with
+        BasePageMixin<TestDart, TestPresenter>,
+        AutomaticKeepAliveClientMixin<TestDart>
+    implements ITestView {
   EnsureMoneyProvider provider = EnsureMoneyProvider();
 
   @override
@@ -156,7 +156,7 @@ class _TestDartState extends State<TestDart>
                   alignment: Alignment.centerLeft,
                   margin: EdgeInsets.fromLTRB(14, 19, 0, 0),
                   child: Text(
-                    "保证金流水",
+                    "保证金流水1",
                     style: TextStyles.textBold15,
                   ),
                 ),
@@ -186,15 +186,13 @@ class _TestDartState extends State<TestDart>
   }
 
   @override
-  EnsureMoneyPresenter createPresenter() => EnsureMoneyPresenter();
-
-  @override
   void setTopData(EnsureMoneyModelEntity modelEntity) {
-    setState(() {
-
-    });
+    setState(() {});
   }
 
   @override
   bool get wantKeepAlive => true;
+
+  @override
+  TestPresenter createPresenter() => TestPresenter();
 }
