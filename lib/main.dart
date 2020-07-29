@@ -1,26 +1,105 @@
 import 'dart:convert';
 import 'dart:ui';
 
+import 'package:bbfluttermodule/TestDart.dart';
+import 'package:bbfluttermodule/page/ensure_money/page/ensure_money.dart';
+import 'package:bbfluttermodule/router/not_found_page.dart';
+import 'package:bbfluttermodule/router/routers.dart';
+import 'package:bbfluttermodule/util/log_utils.dart';
+import 'package:oktoast/oktoast.dart';
+import 'package:provider/provider.dart';
+
+import 'common/common.dart';
 import 'file:///D:/bb_flutter_module/bb_flutter_module/lib/page/score/score_detail.dart';
-import 'package:bbfluttermodule/page/ensure_money/ensure_money.dart';
 import 'package:bbfluttermodule/secondPage.dart';
+import 'package:dio/dio.dart';
 import 'file:///D:/bb_flutter_module/bb_flutter_module/lib/page/threePage.dart';
 import 'package:flutter/material.dart';
 
 import 'bean/rouPathBean.dart';
+import 'net/dio_utils.dart';
+import 'net/intercept.dart';
 import 'page/score_page.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-
+import 'theme/theme_provider.dart';
 
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
+  final Widget home;
+  final ThemeData theme;
+
+  MyApp({this.home, this.theme}) {
+    Log.init();
+    initDio();
+    Routes.initRoutes();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-//      home: _widgetRouter(window.defaultRouteName),
-      home: EnsureMoney(),
+    return OKToast(
+        child: ChangeNotifierProvider<ThemeProvider>(
+          create: (_) => ThemeProvider(),
+          child: Consumer<ThemeProvider>(
+            builder: (_, provider, __) {
+              return MaterialApp(
+                title: 'Flutter Deer',
+//              showPerformanceOverlay: true, //显示性能标签
+//              debugShowCheckedModeBanner: false, // 去除右上角debug的标签
+//              checkerboardRasterCacheImages: true,
+//              showSemanticsDebugger: true, // 显示语义视图
+//              checkerboardOffscreenLayers: true, // 检查离屏渲染
+                theme: theme ?? provider.getTheme(),
+//                darkTheme: provider.getTheme(isDarkMode: true),
+//                themeMode: provider.getThemeMode(),
+                home: TestDart(),
+                onGenerateRoute: Routes.router.generator,
+                builder: (context, child) {
+                  /// 保证文字大小不受手机系统设置影响 https://www.kikt.top/posts/flutter/layout/dynamic-text/
+                  return MediaQuery(
+                    data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+                    // 或者 MediaQueryData.fromWindow(WidgetsBinding.instance.window).copyWith(textScaleFactor: 1.0),
+                    child: child,
+                  );
+                },
+
+                /// 因为使用了fluro，这里设置主要针对Web
+                onUnknownRoute: (_) {
+                  return MaterialPageRoute(
+                    builder: (BuildContext context) => NotFoundPage(),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+
+        /// Toast 配置
+        backgroundColor: Colors.black54,
+        textPadding:
+            const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+        radius: 20.0,
+        position: ToastPosition.bottom);
+  }
+
+  void initDio() {
+    final List<Interceptor> interceptors = [];
+
+    /// 统一添加身份验证请求头
+    interceptors.add(AuthInterceptor());
+
+    /// 刷新Token
+    interceptors.add(TokenInterceptor());
+
+    /// 打印Log(生产模式去除)
+    if (!Constant.inProduction) {
+      interceptors.add(LoggingInterceptor());
+    }
+
+    /// 适配数据(根据自己的数据结构，可自行选择添加)
+    interceptors.add(AdapterInterceptor());
+    setInitDio(
+      baseUrl: 'https://api.github.com/',
+      interceptors: interceptors,
     );
   }
 }
@@ -36,8 +115,6 @@ _widgetRouter(String json) {
     path = path != null && path.isNotEmpty ? path : "test_sample";
     param = param != null && param.isNotEmpty ? param : "";
     switch (path) {
-      case "test_sample":
-        return MyHomePage(title: 'Flutter Demo Home Page');
       case "1":
         return ScorePage();
       case "2":
@@ -45,94 +122,7 @@ _widgetRouter(String json) {
       case "3":
         return ThreePage();
     }
-
-    return MyHomePage(title: 'Flutter Demo Home Page');
-  }else{
+  } else {
     return ScorePage();
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
   }
 }

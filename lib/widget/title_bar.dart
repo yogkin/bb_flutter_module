@@ -18,7 +18,7 @@ class TitleBar extends StatelessWidget {
             width: 50,
             height: 50,
             child: IconButton(
-              icon: Image.asset("static/images/icon_back_black.png"),
+              icon: Image.asset("assets/images/icon_back_black.png"),
               onPressed: () {
                 if (Navigator.canPop(context)) {
                   Navigator.pop(context);
