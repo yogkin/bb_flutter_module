@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:ui';
 
-import 'package:bbfluttermodule/TestDart.dart';
 import 'package:bbfluttermodule/page/ensure_money/page/ensure_money.dart';
 import 'package:bbfluttermodule/page/threePage.dart';
 import 'package:bbfluttermodule/router/not_found_page.dart';
@@ -97,7 +96,7 @@ class MyApp extends StatelessWidget {
     /// 适配数据(根据自己的数据结构，可自行选择添加)
     interceptors.add(AdapterInterceptor());
     setInitDio(
-      baseUrl: 'https://api.github.com/',
+      baseUrl: 'http://heihei.com/',
       interceptors: interceptors,
     );
   }

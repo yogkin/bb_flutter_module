@@ -1,6 +1,10 @@
 import 'package:bbfluttermodule/common/color_utils.dart';
 import 'package:bbfluttermodule/mvp/base_page.dart';
 import 'package:bbfluttermodule/mvp/base_page_presenter.dart';
+import 'package:bbfluttermodule/mvp/base_presenter.dart';
+import 'package:bbfluttermodule/mvp/mvps.dart';
+import 'package:bbfluttermodule/mvp/simple_base_page_mixin.dart';
+import 'package:bbfluttermodule/net/dio_utils.dart';
 import 'package:bbfluttermodule/page/ensure_money/iview/i_ensure_money.dart';
 import 'package:bbfluttermodule/page/ensure_money/models/ensure_moeny_model_entity.dart';
 import 'package:bbfluttermodule/page/ensure_money/presenter/ensure_money_presenter.dart';
@@ -23,14 +27,19 @@ class EnsureMoney extends StatefulWidget {
   }) : super(key: key);
 }
 
-class _EnsureMoneyState extends State<EnsureMoney>
-    with BasePageMixin<EnsureMoney, EnsureMoneyPresenter>,
-        AutomaticKeepAliveClientMixin<EnsureMoney>
-    implements IEnsureView {
-  var _daiCongMoney = "119763.00";
+class _EnsureMoneyState extends SimplePage {
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      presenter.asyncRequestNetwork(Method.get, url: "app/package/pay/securityAmount/current");
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       backgroundColor: Colours.bg_color,
       body: Stack(
@@ -38,12 +47,6 @@ class _EnsureMoneyState extends State<EnsureMoney>
       ),
     );
   }
-
-  @override
-  EnsureMoneyPresenter createPresenter() => EnsureMoneyPresenter();
-
-  @override
-  void setTopData(EnsureMoneyModelEntity modelEntity) {}
 
   Widget _bodyBuilder() {
     return Column(
@@ -89,6 +92,7 @@ class _EnsureMoneyState extends State<EnsureMoney>
                           "待充余额(元):",
                           style: Theme.of(context).textTheme.subtitle2,
                         ),
+                        Gaps.vGap10,
                         Text(
                           "19763.00",
                           style: TextStyles.textBold22,
@@ -106,6 +110,7 @@ class _EnsureMoneyState extends State<EnsureMoney>
                       children: <Widget>[
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: <Widget>[
                             Text("待充余额(元):",
                                 style: Theme.of(context).textTheme.subtitle2),
@@ -188,6 +193,4 @@ class _EnsureMoneyState extends State<EnsureMoney>
     );
   }
 
-  @override
-  bool get wantKeepAlive => true;
 }
