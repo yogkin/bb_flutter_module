@@ -10,6 +10,7 @@ class Constant {
   
   static const String data = 'data';
   static const String message = 'message';
+  static const String msg = 'msg';
   static const String code = 'code';
   
   static const String keyGuide = 'keyGuide';

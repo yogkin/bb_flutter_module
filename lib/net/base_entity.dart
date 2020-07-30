@@ -3,14 +3,14 @@ import 'package:bbfluttermodule/generated/json/base/json_convert_content.dart';
 
 class BaseEntity<T> {
   int code;
-  String message;
+  String msg;
   T data;
 
-  BaseEntity(this.code, this.message, this.data);
+  BaseEntity(this.code, this.msg, this.data);
 
   BaseEntity.fromJson(Map<String, dynamic> json) {
     code = json[Constant.code] as int;
-    message = json[Constant.message] as String;
+    msg = json[Constant.msg] as String;
     if (json.containsKey(Constant.data)) {
       data = _generateOBJ<T>(json[Constant.data]);
     }

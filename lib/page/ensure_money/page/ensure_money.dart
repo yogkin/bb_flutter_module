@@ -1,3 +1,4 @@
+
 import 'package:bbfluttermodule/common/color_utils.dart';
 import 'package:bbfluttermodule/mvp/base_page.dart';
 import 'package:bbfluttermodule/mvp/base_page_presenter.dart';
@@ -7,6 +8,7 @@ import 'package:bbfluttermodule/mvp/simple_base_page_mixin.dart';
 import 'package:bbfluttermodule/net/dio_utils.dart';
 import 'package:bbfluttermodule/page/ensure_money/iview/i_ensure_money.dart';
 import 'package:bbfluttermodule/page/ensure_money/models/ensure_moeny_model_entity.dart';
+import 'package:bbfluttermodule/page/ensure_money/models/ensure_top_info_bean_entity_entity.dart';
 import 'package:bbfluttermodule/page/ensure_money/presenter/ensure_money_presenter.dart';
 import 'package:bbfluttermodule/res/dimens.dart';
 import 'package:bbfluttermodule/res/resources.dart';
@@ -17,6 +19,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:sp_util/sp_util.dart';
 import 'money_item.dart';
+import 'package:html/parser.dart' show parse;
 import 'package:http/http.dart' as http;
 
 class EnsureMoney extends StatefulWidget {
@@ -29,13 +32,23 @@ class EnsureMoney extends StatefulWidget {
 }
 
 class _EnsureMoneyState extends SimplePage {
+  String _unPayAmount = "0.0";
+
+  String _currentAmount = "0.0";
+  String _protocol = "";
 
   @override
   void initState() {
     super.initState();
-    SpUtil.putString("key", "value");
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      presenter.asyncRequestNetwork(Method.get, url: "app/package/pay/securityAmount/current");
+      presenter.asyncRequestNetwork<EnsureTopInfoBeanEntityEntity>(Method.get,
+          url: "app/package/pay/securityAmount/current", onSuccess: (data) {
+        setState(() {
+          _unPayAmount = data.unPayAmount.toString();
+          _currentAmount = data.currentAmount.toString();
+          _protocol = data.securityAmountText;
+        });
+      });
     });
   }
 
@@ -96,7 +109,7 @@ class _EnsureMoneyState extends SimplePage {
                         ),
                         Gaps.vGap10,
                         Text(
-                          "19763.00",
+                          _currentAmount,
                           style: TextStyles.textBold22,
                         ),
                       ],
@@ -116,7 +129,7 @@ class _EnsureMoneyState extends SimplePage {
                           children: <Widget>[
                             Text("待充余额(元):",
                                 style: Theme.of(context).textTheme.subtitle2),
-                            Text("6332",
+                            Text(_unPayAmount,
                                 style: Theme.of(context).textTheme.subtitle2)
                           ],
                         ),
@@ -145,10 +158,7 @@ class _EnsureMoneyState extends SimplePage {
               Gaps.vGap18,
               Container(
                   margin: EdgeInsets.symmetric(horizontal: 17),
-                  child: Text(
-                    "*保证金余额需满足5万元,才能成功入驻,以及保证入驻后功能的正常使用。",
-                    style: Theme.of(context).textTheme.subtitle2,
-                  ))
+                  child: Text(_protocol,style: Theme.of(context).textTheme.subtitle2))
             ],
           ),
         ),
@@ -194,5 +204,4 @@ class _EnsureMoneyState extends SimplePage {
       ],
     );
   }
-
 }

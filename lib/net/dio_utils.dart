@@ -135,7 +135,7 @@ class DioUtils {
           onSuccess(result.data);
         }
       } else {
-        _onError(result.code, result.message, onError);
+        _onError(result.code, result.msg, onError);
       }
     }, onError: (dynamic e) {
       _cancelLogPrint(e, url);
@@ -165,7 +165,7 @@ class DioUtils {
           onSuccess(result.data);
         }
       } else {
-        _onError(result.code, result.message, onError);
+        _onError(result.code, result.msg, onError);
       }
     }, onError: (dynamic e) {
       _cancelLogPrint(e, url);

@@ -1,6 +1,6 @@
-import 'package:bbfluttermodule/page/ensure_money/models/ensure_moeny_model_entity.dart';
+import 'package:bbfluttermodule/page/ensure_money/models/ensure_top_info_bean_entity_entity.dart';
 
-ensureMoneyModelEntityFromJson(EnsureMoneyModelEntity data, Map<String, dynamic> json) {
+ensureTopInfoBeanEntityEntityFromJson(EnsureTopInfoBeanEntityEntity data, Map<String, dynamic> json) {
 	if (json['supplyId'] != null) {
 		data.supplyId = json['supplyId']?.toInt();
 	}
@@ -25,7 +25,7 @@ ensureMoneyModelEntityFromJson(EnsureMoneyModelEntity data, Map<String, dynamic>
 	return data;
 }
 
-Map<String, dynamic> ensureMoneyModelEntityToJson(EnsureMoneyModelEntity entity) {
+Map<String, dynamic> ensureTopInfoBeanEntityEntityToJson(EnsureTopInfoBeanEntityEntity entity) {
 	final Map<String, dynamic> data = new Map<String, dynamic>();
 	data['supplyId'] = entity.supplyId;
 	data['currentAmount'] = entity.currentAmount;
