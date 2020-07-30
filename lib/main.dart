@@ -8,6 +8,7 @@ import 'package:bbfluttermodule/router/routers.dart';
 import 'package:bbfluttermodule/util/log_utils.dart';
 import 'package:oktoast/oktoast.dart';
 import 'package:provider/provider.dart';
+import 'package:sp_util/sp_util.dart';
 
 import 'common/common.dart';
 import 'package:bbfluttermodule/secondPage.dart';
@@ -20,7 +21,12 @@ import 'net/intercept.dart';
 import 'page/score_page.dart';
 import 'theme/theme_provider.dart';
 
-void main() => runApp(MyApp());
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  /// sp初始化
+  await SpUtil.getInstance();
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
   final Widget home;
@@ -82,8 +88,10 @@ class MyApp extends StatelessWidget {
   void initDio() {
     final List<Interceptor> interceptors = [];
 
-    /// 统一添加身份验证请求头
-    interceptors.add(AuthInterceptor());
+//    /// 统一添加身份验证请求头
+//    interceptors.add(AuthInterceptor());
+//
+
 
     /// 刷新Token
     interceptors.add(TokenInterceptor());
@@ -96,7 +104,7 @@ class MyApp extends StatelessWidget {
     /// 适配数据(根据自己的数据结构，可自行选择添加)
     interceptors.add(AdapterInterceptor());
     setInitDio(
-      baseUrl: 'http://heihei.com/',
+      baseUrl: 'http://192.168.1.245:8081/',
       interceptors: interceptors,
     );
   }

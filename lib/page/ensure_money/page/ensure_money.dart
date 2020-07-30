@@ -15,6 +15,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:sp_util/sp_util.dart';
 import 'money_item.dart';
 import 'package:http/http.dart' as http;
 
@@ -32,6 +33,7 @@ class _EnsureMoneyState extends SimplePage {
   @override
   void initState() {
     super.initState();
+    SpUtil.putString("key", "value");
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       presenter.asyncRequestNetwork(Method.get, url: "app/package/pay/securityAmount/current");
     });

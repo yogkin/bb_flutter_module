@@ -1,43 +1,44 @@
-
-
 import 'dart:convert';
 
 import 'package:bbfluttermodule/common/common.dart';
+import 'package:bbfluttermodule/util/device_utils.dart';
 import 'package:bbfluttermodule/util/log_utils.dart';
+import 'package:device_info/device_info.dart';
 import 'package:dio/dio.dart';
 import 'package:sp_util/sp_util.dart';
 import 'package:sprintf/sprintf.dart';
+import 'package:package_info/package_info.dart';
 
 import 'dio_utils.dart';
 import 'error_handle.dart';
 
 class AuthInterceptor extends Interceptor {
+
+
   @override
   Future onRequest(RequestOptions options) {
     final String accessToken = SpUtil.getString(Constant.accessToken);
     if (accessToken.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $accessToken';
     }
-   
+
     return super.onRequest(options);
   }
 }
 
 class TokenInterceptor extends Interceptor {
-
   Future<String> getToken() async {
+    Map<String, String> params = <String, String>{};
+    PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
+      params['cv'] = packageInfo.appName;
+      params['system'] = "2";
+      params["_time"] = DateTime.now().millisecond.toString();
+    });
+     DeviceInfoPlugin().androidInfo.then((AndroidDeviceInfo value) {
+       params['os'] = value.version.release;
+       params['model'] = value.version.baseOS;
+     });
 
-    final Map<String, String> params = <String, String>{};
-    params['refresh_token'] = SpUtil.getString(Constant.refreshToken);
-    try {
-      _tokenDio.options = DioUtils.instance.dio.options;
-      final Response response = await _tokenDio.post('lgn/refreshToken', data: params);
-      if (response.statusCode == ExceptionHandle.success) {
-        return json.decode(response.data.toString())['access_token'];
-      }
-    } catch(e) {
-      Log.e('刷新Token失败！');
-    }
     return null;
   }
 
@@ -46,7 +47,8 @@ class TokenInterceptor extends Interceptor {
   @override
   Future<Object> onResponse(Response response) async {
     //401代表token过期
-    if (response != null && response.statusCode == ExceptionHandle.unauthorized) {
+    if (response != null &&
+        response.statusCode == ExceptionHandle.unauthorized) {
       Log.d('-----------自动刷新Token------------');
       final Dio dio = DioUtils.instance.dio;
       dio.interceptors.requestLock.lock();
@@ -61,6 +63,7 @@ class TokenInterceptor extends Interceptor {
         request.headers['Authorization'] = 'Bearer $accessToken';
         try {
           Log.e('----------- 重新请求接口 ------------');
+
           /// 避免重复执行拦截器，使用tokenDio
           final Response response = await _tokenDio.request(request.path,
               data: request.data,
@@ -78,27 +81,38 @@ class TokenInterceptor extends Interceptor {
   }
 }
 
-class LoggingInterceptor extends Interceptor{
-
+class LoggingInterceptor extends Interceptor {
   DateTime _startTime;
   DateTime _endTime;
-  
+
   @override
-  Future onRequest(RequestOptions options) {
+  Future onRequest(RequestOptions options) async {
     _startTime = DateTime.now();
     Log.d('----------Start----------');
     if (options.queryParameters.isEmpty) {
       Log.d('RequestUrl: ' + options.baseUrl + options.path);
     } else {
-      Log.d('RequestUrl: ' + options.baseUrl + options.path + '?' + Transformer.urlEncodeMap(options.queryParameters));
+      Log.d('RequestUrl: ' +
+          options.baseUrl +
+          options.path +
+          '?' +
+          Transformer.urlEncodeMap(options.queryParameters));
     }
     Log.d('RequestMethod: ' + options.method);
     Log.d('RequestHeaders:' + options.headers.toString());
     Log.d('RequestContentType: ${options.contentType}');
     Log.d('RequestData: ${options.data.toString()}');
+
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+
+    String appName = packageInfo.appName;
+    String packageName = packageInfo.packageName;
+    String version = packageInfo.version;
+    String buildNumber = packageInfo.buildNumber;
+
     return super.onRequest(options);
   }
-  
+
   @override
   Future onResponse(Response response) {
     _endTime = DateTime.now();
@@ -113,7 +127,7 @@ class LoggingInterceptor extends Interceptor{
     Log.d('----------End: $duration 毫秒----------');
     return super.onResponse(response);
   }
-  
+
   @override
   Future onError(DioError err) {
     Log.d('----------Error-----------');
@@ -121,8 +135,7 @@ class LoggingInterceptor extends Interceptor{
   }
 }
 
-class AdapterInterceptor extends Interceptor{
-
+class AdapterInterceptor extends Interceptor {
   static const String _kMsg = 'msg';
   static const String _kSlash = '\'';
   static const String _kMessage = 'message';
@@ -131,14 +144,15 @@ class AdapterInterceptor extends Interceptor{
   static const String _kNotFound = '未找到查询信息';
 
   static const String _kFailureFormat = '{\"code\":%d,\"message\":\"%s\"}';
-  static const String _kSuccessFormat = '{\"code\":0,\"data\":%s,\"message\":\"\"}';
-  
+  static const String _kSuccessFormat =
+      '{\"code\":0,\"data\":%s,\"message\":\"\"}';
+
   @override
   Future onResponse(Response response) {
     Response r = adapterData(response);
     return super.onResponse(r);
   }
-  
+
   @override
   Future onError(DioError err) {
     if (err.response != null) {
@@ -150,8 +164,10 @@ class AdapterInterceptor extends Interceptor{
   Response adapterData(Response response) {
     String result;
     String content = response.data?.toString() ?? '';
+
     /// 成功时，直接格式化返回
-    if (response.statusCode == ExceptionHandle.success || response.statusCode == ExceptionHandle.success_not_content) {
+    if (response.statusCode == ExceptionHandle.success ||
+        response.statusCode == ExceptionHandle.success_not_content) {
       if (content.isEmpty) {
         content = _kDefaultText;
       }
@@ -191,7 +207,8 @@ class AdapterInterceptor extends Interceptor{
           } catch (e) {
             Log.d('异常信息：$e');
             // 解析异常直接按照返回原数据处理（一般为返回500,503 HTML页面代码）
-            result = sprintf(_kFailureFormat, [response.statusCode, '服务器异常(${response.statusCode})']);
+            result = sprintf(_kFailureFormat,
+                [response.statusCode, '服务器异常(${response.statusCode})']);
           }
         }
       }
@@ -200,4 +217,3 @@ class AdapterInterceptor extends Interceptor{
     return response;
   }
 }
-
