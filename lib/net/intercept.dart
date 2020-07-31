@@ -38,10 +38,7 @@ class TokenInterceptor extends Interceptor {
     PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
       params['cv'] = packageInfo.appName;
       params['system'] = "2";
-      params["_time"] = DateTime
-          .now()
-          .millisecond
-          .toString();
+      params["_time"] = DateTime.now().millisecond.toString();
     });
     DeviceInfoPlugin().androidInfo.then((AndroidDeviceInfo value) {
       params['os'] = value.version.release;
@@ -52,7 +49,6 @@ class TokenInterceptor extends Interceptor {
   }
 
   String getSingleParams(Map<String, String> params) {
-
     var arrays = [];
     params.forEach((key, value) {
       var tempStr = value.trimLeft().trimRight();
@@ -65,7 +61,6 @@ class TokenInterceptor extends Interceptor {
     var digest = md5.convert(utf8Str);
     // 这里其实就是 digest.toString()
     return hex.encode(digest.bytes).toUpperCase();
-
   }
 
   Future<Map<String, String>> getParams() async {
@@ -74,12 +69,9 @@ class TokenInterceptor extends Interceptor {
       params['cv'] = packageInfo.appName;
       params['system'] = "2";
 //      params['token'] = SpUtil.getString("token");
-      params['token'] = "f8bbb2c2ecf414a35ebf3d3a91070c33";
+      params['token'] = "b2bb3c44ad8f91d326524d8b1e8e1f8c";
       params['shopId'] = "148";
-      params["_time"] = DateTime
-          .now()
-          .millisecondsSinceEpoch
-          .toString();
+      params["_time"] = DateTime.now().millisecondsSinceEpoch.toString();
     });
     await DeviceInfoPlugin().androidInfo.then((AndroidDeviceInfo value) {
       params['os'] = value.version.release;
@@ -94,9 +86,12 @@ class TokenInterceptor extends Interceptor {
   Dio _tokenDio = Dio();
 
   @override
-  Future onRequest(RequestOptions options) async{
+  Future onRequest(RequestOptions options) async {
     await getParams().then((value) {
       options.queryParameters.addAll(value);
+      if (options.data != null) {
+        options.queryParameters.addAll(options.data);
+      }
       return super.onRequest(options);
     });
   }
@@ -166,9 +161,7 @@ class LoggingInterceptor extends Interceptor {
   @override
   Future onResponse(Response response) {
     _endTime = DateTime.now();
-    int duration = _endTime
-        .difference(_startTime)
-        .inMilliseconds;
+    int duration = _endTime.difference(_startTime).inMilliseconds;
     if (response.statusCode == ExceptionHandle.success) {
       Log.d('ResponseCode: ${response.statusCode}');
     } else {
@@ -188,10 +181,8 @@ class LoggingInterceptor extends Interceptor {
 }
 
 class AdapterInterceptor extends Interceptor {
-
   @override
   Future onResponse(Response response) {
-
     return super.onResponse(response);
   }
 
@@ -199,5 +190,4 @@ class AdapterInterceptor extends Interceptor {
   Future onError(DioError err) {
     return super.onError(err);
   }
-
 }
