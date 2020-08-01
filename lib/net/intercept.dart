@@ -68,8 +68,8 @@ class TokenInterceptor extends Interceptor {
     await PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
       params['cv'] = packageInfo.appName;
       params['system'] = "2";
-//      params['token'] = SpUtil.getString("token");
-      params['token'] = "b2bb3c44ad8f91d326524d8b1e8e1f8c";
+      params['token'] = SpUtil.getString("token");
+//      params['token'] = "b2bb3c44ad8f91d326524d8b1e8e1f8c";
       params['shopId'] = "148";
       params["_time"] = DateTime.now().millisecondsSinceEpoch.toString();
     });

@@ -31,7 +31,7 @@ ensureListItemBeanListFromJson(EnsureListItemBeanList data, Map<String, dynamic>
 		data.packagePayId = json['packagePayId']?.toInt();
 	}
 	if (json['payAmount'] != null) {
-		data.payAmount = json['payAmount']?.toInt();
+		data.payAmount = json['payAmount']?.toDouble();
 	}
 	if (json['payTime'] != null) {
 		data.payTime = json['payTime']?.toString();

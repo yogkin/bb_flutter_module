@@ -7,7 +7,7 @@ import 'base_presenter.dart';
 class SimplePage<T extends StatefulWidget> extends State<T>
     with BasePageMixin<T, BasePagePresenter>, AutomaticKeepAliveClientMixin<T> {
   @override
-  bool get wantKeepAlive => true;
+  bool get wantKeepAlive => false;
 
   @override
   createPresenter() => BasePagePresenter();

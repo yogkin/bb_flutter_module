@@ -18,12 +18,11 @@ class MoneyItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        click.call(bean);
-      },
+    return InkWell(
+      onTap: () => click.call(bean),
       child: Container(
         height: 46,
+        width: double.infinity,
         margin: EdgeInsets.symmetric(horizontal: 14),
         child: Column(
           children: <Widget>[
@@ -51,7 +50,7 @@ class MoneyItem extends StatelessWidget {
                 Row(
                   children: <Widget>[
                     Text(
-                      bean.payAmount.toString(),
+                      bean.payAmount.toStringAsFixed(2),
                       style: TextStyles.textSize12,
                     ),
                     Gaps.hGap4,

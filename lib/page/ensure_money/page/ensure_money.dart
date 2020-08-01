@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:ffi';
+
 import 'package:bbfluttermodule/common/color_utils.dart';
 import 'package:bbfluttermodule/mvp/base_page.dart';
 import 'package:bbfluttermodule/mvp/base_page_presenter.dart';
@@ -12,8 +15,12 @@ import 'package:bbfluttermodule/page/ensure_money/presenter/ensure_money_present
 import 'package:bbfluttermodule/res/dimens.dart';
 import 'package:bbfluttermodule/res/resources.dart';
 import 'package:bbfluttermodule/util/base_list_provider.dart';
+import 'package:bbfluttermodule/util/utils.dart';
+import 'package:bbfluttermodule/widget/base_dialog.dart';
 import 'package:bbfluttermodule/widget/load_image.dart';
 import 'package:bbfluttermodule/widget/my_refresh_list.dart';
+import 'package:common_utils/common_utils.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -35,10 +42,12 @@ class EnsureMoney extends StatefulWidget {
 }
 
 class _EnsureMoneyState extends SimplePage {
-  String _unPayAmount = "0.0";
+  double _unPayAmount = 0.00;
 
-  String _currentAmount = "0.0";
+  double _currentAmount = 0.00;
+  double _secureAmount = 0.00;
   String _protocol = "";
+  String _info = "";
 
   final int pageSize = 10;
 
@@ -58,9 +67,11 @@ class _EnsureMoneyState extends SimplePage {
       presenter.asyncRequestNetwork<EnsureTopInfoBeanEntityEntity>(Method.get,
           url: "app/package/pay/securityAmount/current", onSuccess: (data) {
         setState(() {
-          _unPayAmount = data.unPayAmount.toString();
-          _currentAmount = data.currentAmount.toString();
+          _unPayAmount = data.unPayAmount.toDouble();
+          _currentAmount = data.currentAmount.toDouble();
+          _secureAmount = data.needSecurityAmount.toDouble();
           _protocol = data.securityAmountText;
+          _info = data.protocol;
         });
       });
       _onRefresh();
@@ -143,14 +154,33 @@ class _EnsureMoneyState extends SimplePage {
                       width: 16,
                       height: 16,
                     ),
-                    onPressed: () {}),
+                    onPressed: () {
+                      SystemNavigator.pop();
+                    }),
                 Text(
                   "平台保证金",
                   style: TextStyles.textBold16,
                 ),
-                Text(
-                  "说明",
-                  style: TextStyle(fontSize: 13, color: color333),
+                GestureDetector(
+                  onTap: () {
+                    showElasticDialog(
+                        context: context,
+                        builder: (context) => BaseDialog(
+                              title: "提示",
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(_info),
+                              ),
+                            ));
+                  },
+                  child: SizedBox(
+                    width: 30,
+                    height: 30,
+                    child: Text(
+                      "说明",
+                      style: TextStyle(fontSize: 13, color: color333),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -174,7 +204,7 @@ class _EnsureMoneyState extends SimplePage {
                           ),
                           Gaps.vGap10,
                           Text(
-                            _currentAmount,
+                            _currentAmount.toStringAsFixed(2),
                             style: TextStyles.textBold22,
                           ),
                         ],
@@ -194,7 +224,7 @@ class _EnsureMoneyState extends SimplePage {
                             children: <Widget>[
                               Text("待充余额(元):",
                                   style: Theme.of(context).textTheme.subtitle2),
-                              Text(_unPayAmount,
+                              Text(_unPayAmount.toStringAsFixed(2),
                                   style: Theme.of(context).textTheme.subtitle2)
                             ],
                           ),
@@ -207,10 +237,14 @@ class _EnsureMoneyState extends SimplePage {
                                   Color(0xFFD0A049),
                                   Color(0xFFE3BC67),
                                 ])),
-                            child: Text(
-                              "保证金充值 >",
-                              textAlign: TextAlign.center,
-                              style: TextStyles.textWhite11,
+                            child: InkWell(
+                              onTap: () => channel
+                                  .invokeMethod("go2Activity_charge_money"),
+                              child: Text(
+                                "保证金充值 >",
+                                textAlign: TextAlign.center,
+                                style: TextStyles.textWhite11,
+                              ),
                             ),
                           )
                         ],
@@ -223,10 +257,25 @@ class _EnsureMoneyState extends SimplePage {
                 Gaps.vGap16,
                 Container(
                     margin: EdgeInsets.symmetric(horizontal: 17),
-                    child: Text(
-                      "*保证金余额需满足5万元,才能成功入驻,以及保证入驻后功能的正常使用。",
-                      style: Theme.of(context).textTheme.subtitle2,
-                    ))
+                    child: RichText(
+                        text: TextSpan(children: [
+                      TextSpan(
+                          text: "*",
+                          style: TextStyle(
+                              color: Color(0xFFDE9238),
+                              fontSize: Dimens.font_sp11)),
+                      TextSpan(
+                          text: "保证金余额需满足",
+                          style: Theme.of(context).textTheme.subtitle2),
+                      TextSpan(
+                          text: "${_secureAmount.toStringAsFixed(2)}",
+                          style: TextStyle(
+                              color: Color(0xFFDE9238),
+                              fontSize: Dimens.font_sp11)),
+                      TextSpan(
+                          text: ",才能成功入驻,以及保证入驻后功能 的正常使用。",
+                          style: Theme.of(context).textTheme.subtitle2),
+                    ])))
               ],
             ),
           ),
@@ -262,8 +311,9 @@ class _EnsureMoneyState extends SimplePage {
                       itemBuilder: (_, int index) {
                         return MoneyItem(
                           bean: provider.list[index],
-                          click: (bean){
-                            channel.invokeMethod("go2Activity",{"playId":bean.packagePayId});
+                          click: (bean) {
+                            channel.invokeMethod(
+                                "go2Activity", {"playId": json.encode(bean)});
                           },
                         );
                       },

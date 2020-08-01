@@ -10,7 +10,7 @@ class EnsureListItemBeanEntity with JsonConvert<EnsureListItemBeanEntity> {
 
 class EnsureListItemBeanList with JsonConvert<EnsureListItemBeanList> {
   int packagePayId;
-  int payAmount;
+  double payAmount;
   String payTime;
   String shopName;
   int supplyId;
