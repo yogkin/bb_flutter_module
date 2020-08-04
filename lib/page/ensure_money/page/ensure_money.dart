@@ -58,14 +58,15 @@ class _EnsureMoneyState extends SimplePage {
   MethodChannel channel = MethodChannel("baoban");
 
   @override
-  void initState() {
+  void initState(){
     super.initState();
 
     /// 默认为加载中状态，本页面场景默认为空
     provider.setStateTypeNotNotify(StateType.empty);
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      presenter.asyncRequestNetwork<EnsureTopInfoBeanEntityEntity>(Method.get,
-          url: "app/package/pay/securityAmount/current", onSuccess: (data) {
+      presenter.asyncBaoBanRequestNetwork<EnsureTopInfoBeanEntityEntity>(
+          Method.get,
+          url: "/app/package/pay/securityAmount/current", onSuccess: (data) {
         setState(() {
           _unPayAmount = data.unPayAmount.toDouble();
           _currentAmount = data.currentAmount.toDouble();
@@ -99,12 +100,12 @@ class _EnsureMoneyState extends SimplePage {
 
   void getItemList() {
     var params = {"pageSize": "$pageSize", "pageNumber": "$_page"};
-    presenter.asyncRequestNetwork<EnsureListItemBeanEntity>(Method.get,
+    presenter.asyncBaoBanRequestNetwork<EnsureListItemBeanEntity>(Method.get,
         params: params,
         isShow: false,
+        isClose: false,
         url: "/app/package/pay/securityAmount/list", onSuccess: (data) {
       if (data != null) {
-        /// 一页30条数据，等于30条认为有下一页
         /// 具体的处理逻辑根据具体的接口情况处理，这部分可以抽离出来
         provider.setHasMore(data.xList.length == pageSize);
         if (_page == 1) {
@@ -132,7 +133,7 @@ class _EnsureMoneyState extends SimplePage {
 
   Future<void> _onRefresh() {
     _page = 1;
-    return Future.sync(() {
+    return Future(() {
       getItemList();
     });
   }

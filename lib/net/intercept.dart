@@ -14,24 +14,17 @@ import 'package:package_info/package_info.dart';
 import 'dart:convert';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
+import 'package:common_utils/common_utils.dart';
 
 import 'dio_utils.dart';
 import 'error_handle.dart';
 
-class AuthInterceptor extends Interceptor {
-  @override
-  Future onRequest(RequestOptions options) {
-    final String accessToken = SpUtil.getString(Constant.accessToken);
-    if (accessToken.isNotEmpty) {
-      options.headers['Authorization'] = 'Bearer $accessToken';
-    }
-
-    return super.onRequest(options);
-  }
-}
-
 class TokenInterceptor extends Interceptor {
   final String KEY = "com.psss@2018";
+  final String ERP_KEY = "com.psss@ysbaob2019";
+  final String PHP_KEY = "com.psss@yserp2019";
+
+  MethodChannel channel = MethodChannel(Constant.CHANNEL_NAME);
 
   Future<String> getToken() async {
     Map<String, String> params = <String, String>{};
@@ -48,50 +41,67 @@ class TokenInterceptor extends Interceptor {
     return null;
   }
 
-  String getSingleParams(Map<String, String> params) {
+  String getSingleParams(Map<String, String> params, String baseUrl) {
     var arrays = [];
     params.forEach((key, value) {
       var tempStr = value.trimLeft().trimRight();
       arrays.add("$key=$tempStr");
       arrays.sort();
     });
-    arrays.add("key=$KEY");
-    var singTempStr = arrays.join("&");
-    var utf8Str = Utf8Encoder().convert(singTempStr);
-    var digest = md5.convert(utf8Str);
-    // 这里其实就是 digest.toString()
-    return hex.encode(digest.bytes).toUpperCase();
+    if (baseUrl.startsWith("https://pssapi")) {
+      arrays.add("key=$KEY");
+    } else if (baseUrl.startsWith("https://erpapi")) {
+      arrays.add("key=$ERP_KEY");
+    } else if (baseUrl.startsWith("https://d0k0")) {
+      arrays.add("key=$PHP_KEY");
+    } else {
+      arrays.add("key=$KEY");
+    }
+
+      var singTempStr = arrays.join("&");
+//      var utf8Str = Utf8Encoder().convert(singTempStr);
+//      var digest = md5.convert(utf8Str);
+      // 这里其实就是 digest.toString()
+//    return hex.encode(digest.bytes).toUpperCase();
+    return EncryptUtil.encodeMd5(singTempStr);
   }
 
-  Future<Map<String, String>> getParams() async {
+  Future<dynamic> getParams(String baseUrl, Map<String, String> data) async {
     Map<String, String> params = <String, String>{};
     await PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
       params['cv'] = packageInfo.appName;
       params['system'] = "2";
       params['token'] = SpUtil.getString("token");
-//      params['token'] = "b2bb3c44ad8f91d326524d8b1e8e1f8c";
-      params['shopId'] = "148";
+      params['shopId'] = SpUtil.getString(Constant.SP_SHOP_ID);
       params["_time"] = DateTime.now().millisecondsSinceEpoch.toString();
     });
     await DeviceInfoPlugin().androidInfo.then((AndroidDeviceInfo value) {
       params['os'] = value.version.release;
       params['model'] = value.version.baseOS;
     });
+    if (data != null) {
+      params.addAll(data);
+    }
     //添加签名
-    params["sign"] = getSingleParams(params);
-
-    return params;
+//    params["sign"] = getSingleParams(params, baseUrl);
+    if (baseUrl.startsWith("https://pssapi")) {
+      return await channel.invokeMethod(Constant.CHANNEL_SIGN_BAO_BAN, params);
+    } else if (baseUrl.startsWith("https://erpapi")) {
+      return await channel.invokeMethod(Constant.CHANNEL_SIGN_PHP, params);
+    } else if (baseUrl.startsWith("https://d0k0")) {
+      return await channel.invokeMethod(Constant.CHANNEL_SIGN_ERP, params);
+    } else {
+      return await channel.invokeMethod(Constant.CHANNEL_SIGN, params);
+    }
   }
 
   Dio _tokenDio = Dio();
 
   @override
   Future onRequest(RequestOptions options) async {
-    await getParams().then((value) {
-      options.queryParameters.addAll(value);
-      if (options.data != null) {
-        options.queryParameters.addAll(options.data);
-      }
+    await getParams(options.baseUrl, options.data).then((value) {
+      var params = Map<String, String>.from(value);
+      options.queryParameters.addAll(params);
       return super.onRequest(options);
     });
   }

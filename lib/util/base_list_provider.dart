@@ -33,7 +33,6 @@ class BaseListProvider<T> extends ChangeNotifier {
 
   void addAll(List<T> data) {
     _list.addAll(data);
-    setStateType(StateType.loading);
     notifyListeners();
   }
 

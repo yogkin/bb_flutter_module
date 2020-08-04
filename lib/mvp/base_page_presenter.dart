@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:bbfluttermodule/net/dio_utils.dart';
 import 'package:bbfluttermodule/net/error_handle.dart';
+import 'package:bbfluttermodule/net/host_type.dart';
 import 'package:bbfluttermodule/net/http_api.dart';
 import 'package:dio/dio.dart';
 import 'package:meta/meta.dart';
@@ -9,7 +10,6 @@ import 'base_presenter.dart';
 import 'mvps.dart';
 
 class BasePagePresenter<V extends IMvpView> extends BasePresenter<V> {
-
   CancelToken _cancelToken;
 
   BasePagePresenter() {
@@ -24,9 +24,88 @@ class BasePagePresenter<V extends IMvpView> extends BasePresenter<V> {
     }
   }
 
-  /// 返回Future 适用于刷新，加载更多
-  Future requestNetwork<T>(Method method, {
+  /// 统一处理(onSuccess返回T对象，onSuccessList返回 List<T>)
+  void asyncBaoBanRequestNetwork<T>(
+    Method method, {
+    String url,
+    NetSuccessCallback<T> onSuccess,
+    NetErrorCallback onError,
+    dynamic params,
+    bool isShow = true,
+    bool isClose = true,
+    Map<String, dynamic> queryParameters,
+    CancelToken cancelToken,
+    Options options,
+  }) {
+    asyncRequestNetwork<T>(method,
+        url: url,
+        hostType: HOST_TYPE.baoban,
+        onSuccess: onSuccess,
+        onError: onError,
+        params: params,
+        isShow: isShow,
+        isClose: isClose,
+        queryParameters: queryParameters,
+        cancelToken: cancelToken,
+        options: options);
+  }
+
+  /// 统一处理(onSuccess返回T对象，onSuccessList返回 List<T>)
+  void asyncPhpRequestNetwork<T>(
+    Method method, {
+    String url,
+    NetSuccessCallback<T> onSuccess,
+    NetErrorCallback onError,
+    dynamic params,
+    bool isShow = true,
+    bool isClose = true,
+    Map<String, dynamic> queryParameters,
+    CancelToken cancelToken,
+    Options options,
+  }) {
+    asyncRequestNetwork<T>(method,
+        url: url,
+        hostType: HOST_TYPE.php,
+        onSuccess: onSuccess,
+        isShow: isShow,
+        isClose: isClose,
+        onError: onError,
+        params: params,
+        queryParameters: queryParameters,
+        cancelToken: cancelToken,
+        options: options);
+  }
+
+  /// 统一处理(onSuccess返回T对象，onSuccessList返回 List<T>)
+  void asyncErpRequestNetwork<T>(
+    Method method, {
+    String url,
+    NetSuccessCallback<T> onSuccess,
+    NetErrorCallback onError,
+    dynamic params,
+    bool isShow = true,
+    bool isClose = true,
+    Map<String, dynamic> queryParameters,
+    CancelToken cancelToken,
+    Options options,
+  }) {
+    asyncRequestNetwork<T>(method,
+        url: url,
+        hostType: HOST_TYPE.erp,
+        onSuccess: onSuccess,
+        onError: onError,
+        params: params,
+        isShow: isShow,
+        isClose: isClose,
+        queryParameters: queryParameters,
+        cancelToken: cancelToken,
+        options: options);
+  }
+
+  void asyncRequestNetwork<T>(
+    Method method, {
     @required String url,
+    HOST_TYPE hostType,
     bool isShow = true,
     bool isClose = true,
     NetSuccessCallback<T> onSuccess,
@@ -37,11 +116,14 @@ class BasePagePresenter<V extends IMvpView> extends BasePresenter<V> {
     Options options,
   }) {
     if (isShow) view.showProgress();
-    return DioUtils.instance.requestNetwork<T>(method, url,
+    DioUtils.instance.asyncRequestNetwork<T>(
+      method,
+      url,
+      hostType,
       params: params,
       queryParameters: queryParameters,
       options: options,
-      cancelToken: cancelToken?? _cancelToken,
+      cancelToken: cancelToken ?? _cancelToken,
       onSuccess: (data) {
         if (isClose) view.closeProgress();
         if (onSuccess != null) {
@@ -52,57 +134,6 @@ class BasePagePresenter<V extends IMvpView> extends BasePresenter<V> {
         _onError(code, msg, onError);
       },
     );
-  }
-
-  void asyncRequestNetwork<T>(Method method, {
-    @required String url,
-    bool isShow = true,
-    bool isClose = true,
-    NetSuccessCallback<T> onSuccess,
-    NetErrorCallback onError,
-    dynamic params,
-    Map<String, dynamic> queryParameters,
-    CancelToken cancelToken,
-    Options options, 
-  }) {
-    if (isShow) view.showProgress();
-    DioUtils.instance.asyncRequestNetwork<T>(method, url,
-      params: params,
-      queryParameters: queryParameters,
-      options: options,
-      cancelToken: cancelToken?? _cancelToken,
-      onSuccess: (data) {
-        if (isClose) view.closeProgress();
-        if (onSuccess != null) {
-          onSuccess(data);
-        }
-      },
-      onError: (code, msg) {
-        _onError(code, msg, onError);
-      },
-    );
-  }
-
-  /// 上传图片实现
-  Future<String> uploadImg(File image) async {
-    String imgPath = '';
-    try{
-      final String path = image.path;
-      final String name = path.substring(path.lastIndexOf('/') + 1);
-      final FormData formData = FormData.fromMap({
-        'uploadIcon': await MultipartFile.fromFile(path, filename: name)
-      });
-      await requestNetwork<String>(Method.post,
-          url: HttpApi.upload,
-          params: formData,
-          onSuccess: (data) {
-            imgPath = data;
-          }
-      );
-    } catch(e) {
-      view.showToast('图片上传失败！');
-    }
-    return imgPath;
   }
 
   void _onError(int code, String msg, NetErrorCallback onError) {
@@ -111,6 +142,7 @@ class BasePagePresenter<V extends IMvpView> extends BasePresenter<V> {
     if (code != ExceptionHandle.cancel_error) {
       view.showToast(msg);
     }
+
     /// 页面如果dispose，则不回调onError
     if (onError != null && view.getContext() != null) {
       onError(code, msg);
